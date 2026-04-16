@@ -1,181 +1,127 @@
 # JetsonNanoTracking
 
-Code-only Jetson Nano tracking repository for the ECO-based `MyECOTracker` setup used in this project. The focus of this repo is a practical TensorRT-accelerated ECO run on Jetson Nano, plus the scripts needed to bootstrap the device and reproduce the selected benchmark run.
+Portable Jetson Nano tracking repo for the ECO-based `MyECOTracker` runtime used in this project.
 
-This repository does not include large model weights, ONNX exports, TensorRT engines, datasets, logs, or tracking results. Those assets are intentionally stored outside GitHub.
+This GitHub repo is prepared so another Jetson Nano can:
 
-## What This Repo Contains
+1. clone the repo
+2. create the runtime environment
+3. auto-download the required runtime model assets from Hugging Face
+4. run the real-video person-tracking tests with one command
 
-- A trimmed `pytracking` codebase with ECO changes and TensorRT integration.
-- Jetson Nano shell scripts for environment bootstrap and reproducible runs.
-- Multiple Jetson-oriented ECO parameter variants under `pytracking/pytracking/parameter/eco/`.
-- A canonical main run alias: `verified_otb936_main`.
+## Quick Start
 
-## Main Run
+On the target Jetson Nano:
 
-The default benchmark profile is:
+```bash
+git clone https://github.com/shinlnh/JetsonNanoTracking.git
+cd JetsonNanoTracking
+bash jetson/setup_and_run_real_video_tests.sh pure
+```
 
-- Parameter alias: `verified_otb936_main`
-- Backing profile: `jetson_fast_trt_rgb`
-- Tracker family: `eco`
-- Main engine: `pytracking/pretrained_network/resnet18_vggmconv1/resnet18_vggmconv1_otb_small_fp16.engine`
+If the machine uses PowerShell instead of a normal shell, there is also a wrapper:
 
-This alias is defined in [pytracking/pytracking/parameter/eco/verified_otb936_main.py](pytracking/pytracking/parameter/eco/verified_otb936_main.py).
+```powershell
+pwsh -File jetson/setup_and_run_real_video_tests.ps1 pure
+```
 
-## Benchmark Snapshot
+The canonical Jetson entrypoint is still the `.sh` script. The `.ps1` file is only a wrapper around it.
 
-Selected main run on the small tuning subset used during speed and accuracy search:
+## What The One-Command Flow Does
 
-| Dataset / split | AUC | FPS avg seq |
-| --- | ---: | ---: |
-| `Girl + Walking2 + Woman` | `59.2330` | `27.5965` |
+`jetson/setup_and_run_real_video_tests.sh` will:
 
-Full OTB100 run on Jetson Nano:
+1. create or reuse `.venv`
+2. install the Jetson Nano runtime dependencies
+3. download runtime tracker / detector assets from:
+   `https://huggingface.co/shin0412/JetsonNanoTracking`
+4. run the three real person-tracking test videos bundled in this repo
 
-| Metric | Value |
-| --- | ---: |
-| `AUC_mean` | `49.5614` |
-| `FPS_avg_seq` | `27.4311` |
-| `FPS_weighted_by_frames` | `27.2438` |
+Default mode:
 
-## Model Assets
+- `pure`
+  - runs the three historical real-video tests with `verified_otb936_run_update`
 
-GitHub is code-only. Download weights and TensorRT engines from Hugging Face:
+Optional modes:
 
-- Namespace: `https://huggingface.co/shin0412`
-- TensorRT engine repo: `https://huggingface.co/shin0412/jetsonnano-eco-engines`
+- `yolo`
+  - runs the detector-assisted `dualacc_yolo_ts` flow
+- `all`
+  - runs both `pure` and `yolo`
+
+## Real Video Test Inputs
+
+These three source videos are intentionally kept in Git because they are small enough and are needed for portable repro:
+
+- `jetson/video_inputs/test1/1.mp4`
+- `jetson/video_inputs/test2/2.mp4`
+- `jetson/video_inputs/test3/3.mp4`
+
+Decoded JPG frames, tracking outputs, logs, reports, and runtime cache are intentionally ignored from Git.
+
+## Runtime Models
+
+GitHub stores code plus the small demo videos.
+
+Runtime model assets are downloaded automatically from Hugging Face by:
+
+- `jetson/download_runtime_assets.py`
+
+Current public asset source:
+
+- `https://huggingface.co/shin0412/JetsonNanoTracking`
 
 See [MODELS.md](MODELS.md) and [pytracking/pretrained_network/README.md](pytracking/pretrained_network/README.md).
 
-At minimum, the main run expects this engine to exist locally:
+## Main Runtime Mapping
 
-```text
-pytracking/pretrained_network/resnet18_vggmconv1/resnet18_vggmconv1_otb_small_fp16.engine
-```
+The real-video tests use:
 
-If you keep the repo code in a different location, make sure `MYECO_NETWORK_PATH` points to the matching `pretrained_network` directory.
+- parameter alias: `verified_otb936_run_update`
+- alias chain:
+  `verified_otb936_run_update -> jetson_fast_trt_rgb_run_update -> jetson_fast_trt_dual_acc`
+- TensorRT engine:
+  `resnet18_vggmconv1_otb_dual_large_fp16.engine`
 
-## Repository Layout
+For detector-assisted video tests, the detector artifact is:
 
-```text
-JetsonNanoTracking/
-|- jetson/
-|  |- bootstrap_native_verified936.sh
-|  |- activate_verified936_env.sh
-|  |- run_verified936.sh
-|  |- run_eco_sweep.sh
-|  `- run_eco_sweep2.sh
-|- pytracking/
-|  |- pretrained_network/
-|  `- pytracking/
-|     |- experiments/
-|     |- features/
-|     |- parameter/eco/
-|     `- tracker/
-|- requirements-jetson.txt
-|- requirements-jetson-freeze.txt
-`- MODELS.md
-```
+- `yolo_person_only.torchscript`
 
-## Jetson Nano Setup
+## Jetson Assumptions
 
-The Jetson scripts assume this checkout lives at:
+The portable flow assumes:
 
-```bash
-~/HELIOS/MyECOTracker
-```
+- Ubuntu / JetPack already installed on the Jetson
+- CUDA / TensorRT runtime available on the device
+- Python 3 available as `python3`
+- internet access on first setup so runtime assets can be downloaded
 
-If you want to keep a different path, export `PROJECT_ROOT` before calling the scripts.
+The scripts no longer require the checkout to live specifically at `~/HELIOS/MyECOTracker`. They resolve the project root from the script location unless `PROJECT_ROOT` is overridden.
 
-### 1. Clone
+## Other Jetson Commands
 
-```bash
-git clone https://github.com/shinlnh/JetsonNanoTracking.git ~/HELIOS/MyECOTracker
-cd ~/HELIOS/MyECOTracker
-```
-
-### 2. Put models in place
-
-Create the pretrained network directory if needed, then place the required `.pth` and `.engine` assets under:
-
-```bash
-~/HELIOS/MyECOTracker/pytracking/pretrained_network/
-```
-
-For the selected main run, the important engine path is:
-
-```bash
-~/HELIOS/MyECOTracker/pytracking/pretrained_network/resnet18_vggmconv1/resnet18_vggmconv1_otb_small_fp16.engine
-```
-
-### 3. Bootstrap the Jetson environment
-
-```bash
-cd ~/HELIOS/MyECOTracker
-bash jetson/bootstrap_native_verified936.sh
-```
-
-This script creates `.venv`, downloads the Jetson-compatible PyTorch wheel, and installs the minimal runtime dependencies used on the source Nano.
-
-### 4. Activate the environment
-
-```bash
-source jetson/activate_verified936_env.sh
-```
-
-By default, the activation script expects:
-
-- `MYECO_NETWORK_PATH=$PROJECT_ROOT/pytracking/pretrained_network`
-- `MYECO_OTB_PATH=$HOME/HELIOS/otb/otb100`
-- `MYECO_LASOT_PATH=$HOME/HELIOS/ls/lasot`
-
-Override them before sourcing the script if your datasets live elsewhere.
-
-## Running
-
-### Smoke test
+Existing benchmark helpers still work:
 
 ```bash
 bash jetson/run_verified936.sh smoke
-```
-
-### Full OTB100 using the main run
-
-```bash
-bash jetson/run_verified936.sh otb
-```
-
-### Small OTB sanity run
-
-```bash
-bash jetson/run_verified936.sh otb_easy3
-```
-
-### LaSOT runs
-
-```bash
-bash jetson/run_verified936.sh lasot
-bash jetson/run_verified936.sh lasot_first20
-bash jetson/run_verified936.sh lasot_headtail40
+bash jetson/run_verified936.sh smoke_run_update
+bash jetson/run_verified936.sh real_videos
+bash jetson/run_verified936.sh real_videos_yolo
+bash jetson/run_verified936.sh real_videos_all
 ```
 
 ## Important Files
 
-- Main alias: [pytracking/pytracking/parameter/eco/verified_otb936_main.py](pytracking/pytracking/parameter/eco/verified_otb936_main.py)
-- Main profile: [pytracking/pytracking/parameter/eco/jetson_fast_trt_rgb.py](pytracking/pytracking/parameter/eco/jetson_fast_trt_rgb.py)
-- Experiment entrypoints: [pytracking/pytracking/experiments/myexperiments.py](pytracking/pytracking/experiments/myexperiments.py)
-- Jetson runner: [jetson/run_verified936.sh](jetson/run_verified936.sh)
-- Runtime dependency list: [requirements-jetson.txt](requirements-jetson.txt)
-- Frozen reference environment: [requirements-jetson-freeze.txt](requirements-jetson-freeze.txt)
+- Portable setup wrapper: `jetson/setup_and_run_real_video_tests.sh`
+- PowerShell wrapper: `jetson/setup_and_run_real_video_tests.ps1`
+- Runtime asset downloader: `jetson/download_runtime_assets.py`
+- Real-video runner: `jetson/run_real_video_tests.sh`
+- Jetson bootstrap: `jetson/bootstrap_native_verified936.sh`
+- Env activation: `jetson/activate_verified936_env.sh`
+- Real-video parameter alias: `pytracking/pytracking/parameter/eco/verified_otb936_run_update.py`
 
 ## Notes
 
-- `requirements-jetson.txt` is the practical install target for the Nano.
-- `requirements-jetson-freeze.txt` is only a reference snapshot from the original device.
-- TensorRT `.engine` files are hardware and TensorRT-version sensitive. Rebuilding on the target device is safer than assuming portability.
-- The repository ignores tracking results, result plots, large models, ONNX exports, and TensorRT engines on purpose.
-
-## Upstream References
-
-- PyTracking: `https://github.com/visionml/pytracking`
-- ECO paper: `https://openaccess.thecvf.com/content_iccv_2017/html/Danelljan_ECO_Efficient_Convolution_ICCV_2017_paper.html`
+- The repo is prepared for portability, not for storing heavyweight runtime outputs.
+- TensorRT `.engine` files are still hardware / TensorRT-version sensitive. The current setup downloads the exact runtime asset used on the source Nano, but rebuilding on the target may still be necessary if JetPack / TensorRT differs too much.
+- The GitHub repo intentionally ignores tracking results, decoded frames, logs, reports, large pretrained networks, and TensorRT build artifacts.

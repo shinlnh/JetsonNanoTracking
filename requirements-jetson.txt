@@ -1,15 +1,14 @@
 # Jetson Nano runtime dependencies for this repository.
-# This file is the practical install target.
+# This file is the practical install target reference.
+#
+# Runtime assets are not pip packages. They are downloaded automatically by:
+#   python3 jetson/download_runtime_assets.py --profile all
+# from:
+#   https://huggingface.co/shin0412/JetsonNanoTracking
 #
 # Assumptions:
 # - JetPack / OpenCV / TensorRT runtime is already installed on the device.
 # - PyTorch is installed separately using the Jetson-compatible wheel.
-#
-# Reference environment:
-# - Python 3.6
-# - OpenCV 4.5.1 from the source Nano
-# - TensorRT 8.2.1.8
-# - PyTorch 1.10.0 on the source Nano
 
 dataclasses==0.8
 decorator==4.4.2

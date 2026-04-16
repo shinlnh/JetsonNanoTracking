@@ -3,6 +3,9 @@ from pytracking.evaluation import Tracker, get_dataset, trackerlist
 MAIN_ECO_PARAMETER = 'verified_otb936_main'
 MAIN_ECO_RUN_ID = 953
 MAIN_ECO_DISPLAY_NAME = 'MyTrackerECO-Main'
+RUN_UPDATE_ECO_PARAMETER = 'verified_otb936_run_update'
+RUN_UPDATE_ECO_RUN_ID = 954
+RUN_UPDATE_ECO_DISPLAY_NAME = 'MyTrackerECO-RunUpdate'
 
 
 def atom_nfs_uav():
@@ -55,5 +58,29 @@ def eco_verified_otb936_lasot_first20():
 
 def eco_verified_otb936_lasot_headtail40():
     trackers = [Tracker('eco', MAIN_ECO_PARAMETER, MAIN_ECO_RUN_ID, MAIN_ECO_DISPLAY_NAME)]
+    dataset = get_dataset('lasot')
+    return trackers, dataset[:20] + dataset[-20:]
+
+
+def eco_verified_otb936_run_update_otb():
+    trackers = [Tracker('eco', RUN_UPDATE_ECO_PARAMETER, RUN_UPDATE_ECO_RUN_ID, RUN_UPDATE_ECO_DISPLAY_NAME)]
+    dataset = get_dataset('otb')
+    return trackers, dataset
+
+
+def eco_verified_otb936_run_update_lasot():
+    trackers = [Tracker('eco', RUN_UPDATE_ECO_PARAMETER, RUN_UPDATE_ECO_RUN_ID, RUN_UPDATE_ECO_DISPLAY_NAME)]
+    dataset = get_dataset('lasot')
+    return trackers, dataset
+
+
+def eco_verified_otb936_run_update_lasot_first20():
+    trackers = [Tracker('eco', RUN_UPDATE_ECO_PARAMETER, RUN_UPDATE_ECO_RUN_ID, RUN_UPDATE_ECO_DISPLAY_NAME)]
+    dataset = get_dataset('lasot')
+    return trackers, dataset[:20]
+
+
+def eco_verified_otb936_run_update_lasot_headtail40():
+    trackers = [Tracker('eco', RUN_UPDATE_ECO_PARAMETER, RUN_UPDATE_ECO_RUN_ID, RUN_UPDATE_ECO_DISPLAY_NAME)]
     dataset = get_dataset('lasot')
     return trackers, dataset[:20] + dataset[-20:]

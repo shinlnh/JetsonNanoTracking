@@ -1,5 +1,12 @@
 Pretrained weights and TensorRT assets are not stored in this GitHub repository.
 
-See [MODELS.md](../../MODELS.md) and the Hugging Face namespace:
+Portable runtime downloads are handled automatically by:
 
-`https://huggingface.co/shin0412`
+- `jetson/download_runtime_assets.py`
+- `jetson/setup_and_run_real_video_tests.sh`
+
+Public asset source:
+
+- `https://huggingface.co/shin0412/JetsonNanoTracking`
+
+See [MODELS.md](../../MODELS.md).

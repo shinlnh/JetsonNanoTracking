@@ -2,7 +2,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="${PROJECT_ROOT:-$HOME/HELIOS/MyECOTracker}"
+PROJECT_ROOT="${PROJECT_ROOT:-$(cd "$SCRIPT_DIR/.." && pwd)}"
 
 # shellcheck disable=SC1090
 source "$SCRIPT_DIR/activate_verified936_env.sh"
@@ -40,9 +40,27 @@ tracker.initialize(image, info)
 print('verified_otb936_main smoke init: OK')
 PY
     ;;
+  smoke_run_update)
+    python3 - <<'PY'
+import numpy as np
+from pytracking.parameter.eco.verified_otb936_run_update import parameters
+from pytracking.tracker.eco import get_tracker_class
+
+params = parameters()
+tracker = get_tracker_class()(params)
+image = np.zeros((256, 256, 3), dtype=np.uint8)
+info = {'init_bbox': [60, 70, 80, 90]}
+tracker.initialize(image, info)
+print('verified_otb936_run_update smoke init: OK')
+PY
+    ;;
   otb)
     require_dir "$MYECO_OTB_PATH" "OTB100"
     run_pytracking eco_verified_otb936_otb --debug 0 --threads 0
+    ;;
+  otb_run_update)
+    require_dir "$MYECO_OTB_PATH" "OTB100"
+    run_pytracking eco_verified_otb936_run_update_otb --debug 0 --threads 0
     ;;
   otb_easy3)
     require_dir "$MYECO_OTB_PATH" "OTB100"
@@ -52,17 +70,38 @@ PY
     require_dir "$MYECO_LASOT_PATH" "LaSOT"
     run_pytracking eco_verified_otb936_lasot --debug 0 --threads 0
     ;;
+  lasot_run_update)
+    require_dir "$MYECO_LASOT_PATH" "LaSOT"
+    run_pytracking eco_verified_otb936_run_update_lasot --debug 0 --threads 0
+    ;;
   lasot_first20)
     require_dir "$MYECO_LASOT_PATH" "LaSOT"
     run_pytracking eco_verified_otb936_lasot_first20 --debug 0 --threads 0
+    ;;
+  lasot_first20_run_update)
+    require_dir "$MYECO_LASOT_PATH" "LaSOT"
+    run_pytracking eco_verified_otb936_run_update_lasot_first20 --debug 0 --threads 0
     ;;
   lasot_headtail40)
     require_dir "$MYECO_LASOT_PATH" "LaSOT"
     run_pytracking eco_verified_otb936_lasot_headtail40 --debug 0 --threads 0
     ;;
+  lasot_headtail40_run_update)
+    require_dir "$MYECO_LASOT_PATH" "LaSOT"
+    run_pytracking eco_verified_otb936_run_update_lasot_headtail40 --debug 0 --threads 0
+    ;;
+  real_videos)
+    bash "$SCRIPT_DIR/run_real_video_tests.sh" pure
+    ;;
+  real_videos_yolo)
+    bash "$SCRIPT_DIR/run_real_video_tests.sh" yolo
+    ;;
+  real_videos_all)
+    bash "$SCRIPT_DIR/run_real_video_tests.sh" all
+    ;;
   *)
     echo "Unknown mode: $MODE" >&2
-    echo "Usage: $0 {smoke|otb|otb_easy3|lasot|lasot_first20|lasot_headtail40}" >&2
+    echo "Usage: $0 {smoke|smoke_run_update|otb|otb_run_update|otb_easy3|lasot|lasot_run_update|lasot_first20|lasot_first20_run_update|lasot_headtail40|lasot_headtail40_run_update|real_videos|real_videos_yolo|real_videos_all}" >&2
     exit 1
     ;;
 esac

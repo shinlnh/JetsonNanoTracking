@@ -22,5 +22,11 @@ jetson/*.csv
 jetson/*.txt
 jetson/*.pid
 jetson/*.lock
+jetson/hard_subset/
+jetson/reports/
 jetson/sweeps/
 jetson/sweeps2/
+jetson/video_cache/
+jetson/video_models/
+jetson/video_runs/
+jetson/video_inputs/**/decoded_jpg/

@@ -1,21 +1,30 @@
-This GitHub repository is code-only by design.
+Runtime model assets for this project are stored on Hugging Face:
 
-Model and engine assets are intended to live under the Hugging Face namespace:
+- Repo: `https://huggingface.co/shin0412/JetsonNanoTracking`
 
-`https://huggingface.co/shin0412`
+They are downloaded automatically by:
 
-Files removed from this GitHub repo and prepared to live in model storage:
+- `jetson/download_runtime_assets.py`
+- `jetson/setup_and_run_real_video_tests.sh`
 
-- `pytracking/pretrained_network/tomp50.pth.tar`
-- `pytracking/pretrained_network/resnet18_vggmconv1/resnet18_vggmconv1.pth`
-- `pytracking/pretrained_network/resnet18_vggmconv1/resnet18_vggmconv1_otb_dyn.onnx`
-- `pytracking/pretrained_network/resnet18_vggmconv1/resnet18_vggmconv1_otb_dyn_fp16.engine`
-- `pytracking/pretrained_network/resnet18_vggmconv1/resnet18_vggmconv1_otb_dual_large_fp16.engine`
-- `pytracking/pretrained_network/resnet18_vggmconv1/resnet18_vggmconv1_otb_dual_small_fp16.engine`
-- `pytracking/pretrained_network/resnet18_vggmconv1/resnet18_vggmconv1_otb_large_b3_fp16.engine`
-- `pytracking/pretrained_network/resnet18_vggmconv1/resnet18_vggmconv1_otb_large_fp16.engine`
-- `pytracking/pretrained_network/resnet18_vggmconv1/resnet18_vggmconv1_otb_small_b3_fp16.engine`
-- `pytracking/pretrained_network/resnet18_vggmconv1/resnet18_vggmconv1_otb_small_fp16.engine`
-- `pytracking/pretrained_network/resnet18_vggmconv1/resnet18_vggmconv1_vggconv1_dyn.onnx`
+## Runtime Assets Used By The Real Video Tests
 
-Jetson-specific build logs for TensorRT engines were also removed from GitHub.
+- Tracker engine:
+  `runtime_test_models/tracker/resnet18_vggmconv1_otb_dual_large_fp16.engine`
+  ->
+  `pytracking/pretrained_network/resnet18_vggmconv1/resnet18_vggmconv1_otb_dual_large_fp16.engine`
+
+- Detector:
+  `runtime_test_models/detector/yolo_person_only.torchscript`
+  ->
+  `jetson/video_models/yolo_person_only.torchscript`
+
+## Test Videos Stored In Git
+
+The three small real-video test inputs are stored directly in GitHub:
+
+- `jetson/video_inputs/test1/1.mp4`
+- `jetson/video_inputs/test2/2.mp4`
+- `jetson/video_inputs/test3/3.mp4`
+
+Decoded frames are not stored in Git. They are produced locally on the target device during the test run.

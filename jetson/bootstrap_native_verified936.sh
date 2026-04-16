@@ -1,17 +1,29 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-PROJECT_ROOT="${PROJECT_ROOT:-$HOME/HELIOS/MyECOTracker}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="${PROJECT_ROOT:-$(cd "$SCRIPT_DIR/.." && pwd)}"
 VENV_DIR="${VENV_DIR:-$PROJECT_ROOT/.venv}"
 TORCH_BOX_URL="${TORCH_BOX_URL:-https://nvidia.box.com/shared/static/fjtbno0vpo676a25cgvuqc1wty0fkkg6.whl}"
+RECREATE_VENV="${RECREATE_VENV:-0}"
 
 mkdir -p "$PROJECT_ROOT" "$HOME/opt/libomp_pkgs" "$HOME/opt/libomp_root" \
          "$HOME/opt/openmpi_pkgs" "$HOME/opt/openmpi_root" \
          "$HOME/opt/hwloc_pkgs" "$HOME/opt/hwloc_root" \
          "$HOME/opt/torch_wheels"
 
-rm -rf "$VENV_DIR"
-python3 -m virtualenv --system-site-packages "$VENV_DIR"
+if [ "$RECREATE_VENV" = "1" ] && [ -d "$VENV_DIR" ]; then
+  rm -rf "$VENV_DIR"
+fi
+
+if ! python3 -m virtualenv --version >/dev/null 2>&1; then
+  python3 -m pip install --user "virtualenv==20.17.1"
+fi
+
+if [ ! -d "$VENV_DIR" ]; then
+  python3 -m virtualenv --system-site-packages "$VENV_DIR"
+fi
+
 "$VENV_DIR/bin/pip" install --no-cache-dir "numpy==1.19.4" "pillow<9" pyyaml tqdm visdom
 
 cd "$HOME/opt/libomp_pkgs"
@@ -36,4 +48,4 @@ echo
 echo "Bootstrap complete."
 echo "Next:"
 echo "  source \"$PROJECT_ROOT/jetson/activate_verified936_env.sh\""
-echo "  bash \"$PROJECT_ROOT/jetson/run_verified936.sh\" smoke"
+echo "  bash \"$PROJECT_ROOT/jetson/setup_and_run_real_video_tests.sh\" pure"
